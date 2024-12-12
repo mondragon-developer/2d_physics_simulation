@@ -215,11 +215,9 @@
     </div>
 
     <script>
-      // Canvas setup
-      const canvas = document.getElementById("simulationCanvas");
-      const ctx = canvas.getContext("2d");
-
       // Initial variables
+      let canvas;
+      let ctx;
       let g = 9.81;
       let angle = 30;
       let length = 5;
@@ -229,6 +227,92 @@
       let data = [];
       let animationId = null;
       let simulationCompleted = false;
+      let speedChart, accelerationChart, speedHeightChart, heightChart;
+
+      function initializeSimulation() {
+        // Setup canvas
+        canvas = document.getElementById("simulationCanvas");
+        ctx = canvas.getContext("2d");
+        setupCanvas();
+
+        // Initialize charts
+        speedChart = createChart(
+          document.getElementById("speedChart").getContext("2d"),
+          "Speed vs Time",
+          "Time (s)",
+          "Speed (m/s)"
+        );
+
+        accelerationChart = createChart(
+          document.getElementById("accelerationChart").getContext("2d"),
+          "Acceleration vs Time",
+          "Time (s)",
+          "Acceleration (m/s²)"
+        );
+
+        speedHeightChart = createChart(
+          document.getElementById("speedHeightChart").getContext("2d"),
+          "Speed vs Height",
+          "Height (m)",
+          "Speed (m/s)"
+        );
+
+        heightChart = createChart(
+          document.getElementById("heightChart").getContext("2d"),
+          "Height vs Time",
+          "Time (s)",
+          "Height (m)"
+        );
+
+        // Setup event listeners
+        setupEventListeners();
+
+        // Initial draw
+        drawScene();
+      }
+
+      function setupEventListeners() {
+        document
+          .getElementById("angleSlider")
+          .addEventListener("input", (e) => {
+            angle = parseInt(e.target.value);
+            document.getElementById("angleValue").textContent = angle + "°";
+            if (!isRunning) {
+              drawScene();
+            }
+          });
+
+        document
+          .getElementById("lengthSlider")
+          .addEventListener("input", (e) => {
+            length = parseInt(e.target.value);
+            document.getElementById("lengthValue").textContent = length + "m";
+            if (!isRunning) {
+              drawScene();
+            }
+          });
+
+        document
+          .getElementById("gravitySlider")
+          .addEventListener("input", (e) => {
+            g = parseFloat(e.target.value);
+            document.getElementById("gravityValue").textContent =
+              g.toFixed(2) + " m/s²";
+            if (!isRunning) {
+              drawScene();
+            }
+          });
+
+        document
+          .getElementById("startButton")
+          .addEventListener("click", startSimulation);
+        document
+          .getElementById("stopButton")
+          .addEventListener("click", stopSimulation);
+        document
+          .getElementById("resetButton")
+          .addEventListener("click", resetSimulation);
+      }
 
       // Chart creation function
       function createChart(ctx, label, xLabel, yLabel) {
@@ -265,35 +349,6 @@
           },
         });
       }
-
-      // Initialize charts
-      const speedChart = createChart(
-        document.getElementById("speedChart").getContext("2d"),
-        "Speed vs Time",
-        "Time (s)",
-        "Speed (m/s)"
-      );
-
-      const accelerationChart = createChart(
-        document.getElementById("accelerationChart").getContext("2d"),
-        "Acceleration vs Time",
-        "Time (s)",
-        "Acceleration (m/s²)"
-      );
-
-      const speedHeightChart = createChart(
-        document.getElementById("speedHeightChart").getContext("2d"),
-        "Speed vs Height",
-        "Height (m)",
-        "Speed (m/s)"
-      );
-
-      const heightChart = createChart(
-        document.getElementById("heightChart").getContext("2d"),
-        "Height vs Time",
-        "Time (s)",
-        "Height (m)"
-      );
 
       // Physics calculations
       function calculatePhysics(t) {
@@ -533,34 +588,6 @@
         drawScene();
       }
 
-      // Event listeners
-      document.getElementById("angleSlider").addEventListener("input", (e) => {
-        angle = parseInt(e.target.value);
-        document.getElementById("angleValue").textContent = angle + "°";
-        if (!isRunning) {
-          drawScene();
-        }
-      });
-
-      document.getElementById("lengthSlider").addEventListener("input", (e) => {
-        length = parseInt(e.target.value);
-        document.getElementById("lengthValue").textContent = length + "m";
-        if (!isRunning) {
-          drawScene();
-        }
-      });
-
-      document
-        .getElementById("gravitySlider")
-        .addEventListener("input", (e) => {
-          g = parseFloat(e.target.value);
-          document.getElementById("gravityValue").textContent =
-            g.toFixed(2) + " m/s²";
-          if (!isRunning) {
-            drawScene();
-          }
-        });
-
       document
         .getElementById("startButton")
         .addEventListener("click", startSimulation);
@@ -572,7 +599,6 @@
         .addEventListener("click", resetSimulation);
 
       function setupCanvas() {
-        const canvas = document.getElementById("simulationCanvas");
         const dpr = window.devicePixelRatio || 1;
 
         // Set the actual size of the canvas
@@ -580,7 +606,6 @@
         canvas.height = 400 * dpr;
 
         // Scale the context to ensure correct drawing operations
-        const ctx = canvas.getContext("2d");
         ctx.scale(dpr, dpr);
 
         // Set CSS size
@@ -588,10 +613,14 @@
         canvas.style.height = "400px";
       }
 
-      // Call setupCanvas on page load and before initial drawScene
+      // Initialize everything when the DOM is ready
+      document.addEventListener("DOMContentLoaded", initializeSimulation);
+
+      // Backup initialization for browsers that might miss DOMContentLoaded
       window.addEventListener("load", () => {
-        setupCanvas();
-        drawScene();
+        if (!ctx) {
+          initializeSimulation();
+        }
       });
     </script>
   </body>
