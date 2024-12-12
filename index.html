@@ -400,27 +400,38 @@
       function drawScene() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Calculate the scaling factor based on plane length and canvas size
-        const padding = 30; // Padding from canvas edges
-        const maxWidth = canvas.width - 2 * padding;
-        const maxHeight = canvas.height - 2 * padding;
+        // Increase padding for better visibility
+        const padding = 50;
 
+        // Calculate dimensions of the inclined plane
         const angleRad = (angle * Math.PI) / 180;
         const planeProjectedWidth = length * Math.cos(angleRad);
         const planeProjectedHeight = length * Math.sin(angleRad);
 
-        // Calculate scale to fit the plane within canvas bounds
-        const scaleX = maxWidth / planeProjectedWidth;
-        const scaleY = maxHeight / planeProjectedHeight;
-        const scale = Math.min(scaleX, scaleY, 30); // Cap maximum scale at 30
+        // Calculate available space
+        const availableWidth = canvas.width - 2 * padding;
+        const availableHeight = canvas.height - 2 * padding;
 
-        // Fixed end point (bottom right)
-        const endX = canvas.width - padding;
-        const endY = canvas.height - padding;
+        // Calculate scale to fit entire plane
+        const scaleX = availableWidth / planeProjectedWidth;
+        const scaleY = availableHeight / planeProjectedHeight;
+        const scale = Math.min(scaleX, scaleY, 30); // Cap maximum scale
 
-        // Calculate start point based on end point
-        const startX = endX - Math.cos(angleRad) * length * scale;
-        const startY = endY - Math.sin(angleRad) * length * scale;
+        // Calculate center position
+        const planeWidth = planeProjectedWidth * scale;
+        const planeHeight = planeProjectedHeight * scale;
+
+        // Center the plane horizontally and vertically
+        const centerX = (canvas.width - planeWidth) / 2;
+        const centerY = (canvas.height + planeHeight) / 2;
+
+        // Calculate end point (bottom right of plane)
+        const endX = centerX + planeWidth;
+        const endY = centerY;
+
+        // Calculate start point (top left of plane)
+        const startX = centerX;
+        const startY = centerY - planeHeight;
 
         // Draw ground
         ctx.beginPath();
@@ -437,42 +448,40 @@
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Draw height line and label
-        const realHeight = length * Math.sin(angleRad);
+        // Draw height line
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(startX, endY);
-        ctx.setLineDash([5, 5]); // Create dashed line for height
+        ctx.setLineDash([5, 5]);
         ctx.strokeStyle = "#999";
         ctx.stroke();
-        ctx.setLineDash([]); // Reset to solid line
+        ctx.setLineDash([]);
 
         // Add height label
+        const realHeight = length * Math.sin(angleRad);
         ctx.font = "12px Arial";
         ctx.fillStyle = "#000";
         const heightText = `${realHeight.toFixed(2)}m`;
-        ctx.fillText(heightText, startX + 5, (startY + endY) / 2);
+        ctx.fillText(heightText, startX - 45, (startY + endY) / 2);
 
-        // Draw angle arc and label
-        const arcRadius = 40;
+        // Draw angle arc
+        const arcRadius = Math.min(40, scale * 2);
         ctx.beginPath();
         ctx.arc(endX, endY, arcRadius, Math.PI, Math.PI + angleRad);
         ctx.strokeStyle = "#000";
         ctx.stroke();
 
-        // Add angle label - positioned inside the angle
-        ctx.font = "12px Arial";
-        const labelAngle = Math.PI + angleRad * 0.5; // Middle of the arc
-        const angleTextRadius = arcRadius * 0.6; // Reduce radius to move label inside
+        // Add angle label
+        const labelAngle = Math.PI + angleRad * 0.5;
+        const angleTextRadius = arcRadius * 0.6;
         const angleTextX = endX + angleTextRadius * Math.cos(labelAngle);
         const angleTextY = endY + angleTextRadius * Math.sin(labelAngle);
-        ctx.fillText(`${angle}°`, angleTextX - 8, angleTextY - 2);
+        ctx.fillText(`${angle}°`, angleTextX - 15, angleTextY - 2);
 
-        const ballRadius = 10;
+        const ballRadius = Math.min(10, scale * 0.5);
 
         // Draw ball
         if (simulationCompleted) {
-          // If simulation is complete, draw ball at bottom
           ctx.beginPath();
           ctx.arc(endX, endY - ballRadius, ballRadius, 0, Math.PI * 2);
           ctx.fillStyle = "red";
@@ -481,8 +490,6 @@
           const s = parseFloat(data[data.length - 1].distance);
           const ratio = s / length;
           const ballX = startX + (endX - startX) * ratio;
-
-          // Calculate ball Y position to be on top of the rail
           const ballY = startY + (endY - startY) * ratio;
           const offsetY = ballRadius * Math.cos(angleRad);
 
@@ -492,12 +499,11 @@
           ctx.fill();
         } else {
           ctx.beginPath();
-          ctx.arc(startX, startY, 10, 0, Math.PI * 2);
+          ctx.arc(startX, startY - ballRadius, ballRadius, 0, Math.PI * 2);
           ctx.fillStyle = "red";
           ctx.fill();
         }
       }
-
       // Animation control functions
       function animate() {
         if (!isRunning) return;
