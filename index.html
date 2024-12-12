@@ -3,7 +3,10 @@
   <head>
     <title>Inclined Plane Physics Simulation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -13,9 +16,9 @@
       }
 
       .simulation-container {
-        width: 100%;
+        width: 95%;
         max-width: 800px;
-        margin: 0 auto 20px auto;
+        margin: 10px auto;
         background: white;
         padding: 10px;
         border-radius: 8px;
@@ -31,9 +34,9 @@
       }
 
       .controls-container {
-        width: 100%;
+        width: 95%;
         max-width: 800px;
-        margin: 0 auto 20px auto;
+        margin: 10px auto;
         background: white;
         padding: 10px;
         border-radius: 8px;
@@ -49,7 +52,18 @@
         padding: 0 10px;
       }
 
-      @media screen and (max-width: 600px) {
+      /* Mobile-specific adjustments */
+      @media screen and (max-width: 768px) {
+        body {
+          padding: 5px;
+        }
+
+        .simulation-container,
+        .controls-container {
+          padding: 10px;
+          width: 98%;
+        }
+
         .control-group {
           flex-direction: column;
           align-items: stretch;
@@ -57,10 +71,15 @@
 
         .control-group label {
           text-align: left;
+          width: auto;
         }
 
         .control-group input[type="range"] {
           width: 100%;
+        }
+
+        .charts-grid {
+          grid-template-columns: 1fr;
         }
       }
 
@@ -436,9 +455,17 @@
       function drawScene() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Increase padding for better visibility
-        const padding = 50;
-        const bottomPadding = 70;
+        // Adjust padding based on canvas size
+        const minDimension = Math.min(canvas.width, canvas.height);
+        const padding = minDimension * 0.1; // 10% of smallest dimension
+        const bottomPadding = minDimension * 0.15; // 15% for bottom
+
+        // Scale ball size based on canvas
+        const ballRadius = Math.min(minDimension * 0.025, 10);
+
+        // Scale text based on canvas size
+        const fontSize = Math.max(Math.min(minDimension * 0.03, 12), 8);
+        ctx.font = `${fontSize}px Arial`;
 
         // Calculate dimensions of the inclined plane
         const angleRad = (angle * Math.PI) / 180;
@@ -515,8 +542,6 @@
         const angleTextX = endX + angleTextRadius * Math.cos(labelAngle);
         const angleTextY = endY + angleTextRadius * Math.sin(labelAngle);
         ctx.fillText(`${angle}°`, angleTextX - 30, angleTextY - 2);
-
-        const ballRadius = Math.min(10, scale * 0.5);
 
         // Draw ball
         if (simulationCompleted) {
@@ -622,6 +647,10 @@
         const containerWidth = container.clientWidth - 20; // Subtract padding
         const containerHeight = Math.min(400, window.innerHeight * 0.5); // Responsive height
 
+        // Ensure minimum dimensions
+        containerWidth = Math.max(containerWidth, 300);
+        containerHeight = Math.max(containerHeight, 200);
+
         // Set the actual size of the canvas
         canvas.width = containerWidth * dpr;
         canvas.height = containerHeight * dpr;
@@ -640,6 +669,9 @@
         setupCanvas();
         drawScene();
       });
+
+      // Add resize listener
+      window.addEventListener("resize", _.debounce(handleResize, 250));
 
       // Initialize everything when the DOM is ready
       document.addEventListener("DOMContentLoaded", initializeSimulation);
