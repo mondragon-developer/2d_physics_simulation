@@ -447,7 +447,7 @@
 
         // Calculate available space
         const availableWidth = canvas.width - 2 * padding;
-        const availableHeight = canvas.height - 2 * padding;
+        const availableHeight = canvas.height - (padding + bottomPadding); // Adjust available height
 
         // Calculate scale to fit entire plane
         const scaleX = availableWidth / planeProjectedWidth;
@@ -458,9 +458,9 @@
         const planeWidth = planeProjectedWidth * scale;
         const planeHeight = planeProjectedHeight * scale;
 
-        // Center the plane horizontally and vertically
+        // Position the plane with more space at the bottom
         const centerX = (canvas.width - planeWidth) / 2;
-        const centerY = (canvas.height + planeHeight) / 2;
+        const centerY = padding + planeHeight; // Position from top with padding
 
         // Calculate end point (bottom right of plane)
         const endX = centerX + planeWidth;
